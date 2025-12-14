@@ -1,34 +1,39 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+import joblib
 
 df = pd.read_csv("stars.csv")
 
 features = ["u", "g", "r", "i", "z"]
-X = df[features]
-y = df["class"]
+X = df[features] #Input
+y = df["class"] #Predict
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
+try:
+    model = joblib.load("train1.pkl")
+    X_test = joblib.load("X_test.pkl")
+    y_test = joblib.load("y_test.pkl")
+except FileNotFoundError:
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-model = RandomForestClassifier(random_state=42)
-model.fit(X_train, y_train)
+    model = RandomForestClassifier(random_state=42)
+    model.fit(X_train, y_train)
+
+    #Learned patterns from x and Y
+    joblib.dump(model, "train1.pkl")
+    #Data used to train the model
+    joblib.dump(X_test, "X_test.pkl")
+    joblib.dump(y_test, "y_test.pkl")
 
 print("Accuracy:", model.score(X_test, y_test))
 
 def predict_star_class(model, features: list, new_object_data: list) -> tuple:
-    new_object = pd.DataFrame(
-        [new_object_data],
-        columns=features
-    )
+    new_object = pd.DataFrame([new_object_data], columns=features)
 
     prediction = model.predict(new_object)[0]
     probabilities = model.predict_proba(new_object)[0]
 
-    confidence_dict = {
-        cls: prob for cls, prob in zip(model.classes_, probabilities)
-    }
+    confidence_dict = {cls: prob for cls, prob in zip(model.classes_, probabilities)}
 
     return prediction, confidence_dict
 
