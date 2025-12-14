@@ -1,0 +1,1 @@
+*.pkl          # Ignores train1.pkl, X_test.pkl, etc.
