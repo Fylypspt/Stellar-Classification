@@ -1,62 +1,47 @@
 import pandas as pd
+import numpy as np
+import joblib
+
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-import joblib
-import matplotlib.pyplot as plt
+from sklearn.metrics import classification_report, confusion_matrix
 
-df = pd.read_csv("stars.csv")
+from src.config import *
+import src.func as funcs
+import src.plot as graph
 
-features = ["u", "g", "r", "i", "z", "redshift"]
-X = df[features] #Input
-y = df["class"] #Predict
-
+#Init
 try:
-    model = joblib.load("train1.pkl")
-    X_test = joblib.load("X_test.pkl")
-    y_test = joblib.load("y_test.pkl")
+    model, X_test, y_test = funcs.load_or_train_model(LOAD_MODEL)
 except FileNotFoundError:
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    model, X_test, y_test = funcs.load_or_train_model(False)
 
-    model = RandomForestClassifier(random_state=42)
-    model.fit(X_train, y_train)
-
-    #Learned patterns from x and Y
-    joblib.dump(model, "train1.pkl")
-    #Data used to train the model
-    joblib.dump(X_test, "X_test.pkl")
-    joblib.dump(y_test, "y_test.pkl")
+#Scores
+y_pred = model.predict(X_test)
 
 print(f"Accuracy: {model.score(X_test, y_test):.4%}")
 
-def predict_star_class(model, features: list, new_object_data: list) -> tuple:
-    new_object = pd.DataFrame([new_object_data], columns=features)
+X_drifted = funcs.simulate_drift(X_test)
+print(f"Accuracy after drift: {model.score(X_drifted, y_test):.4%}")
 
-    prediction = model.predict(new_object)[0]
-    probabilities = model.predict_proba(new_object)[0]
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
 
-    confidence_dict = {cls: prob for cls, prob in zip(model.classes_, probabilities)}
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
 
-    return prediction, confidence_dict
+#Test
+new_star = [20.0, 20.0, 20.0, 20.0, 20.0, 0.35]
 
-new_star_data = [19.2, 18.7, 18.3, 18.1, 18.0, 0.0001]
+predicted, probs = funcs.predict_star_class(
+    model,
+    FEATURES,
+    new_star,
+    CONFIDENCE_THRESHOLD
+)
 
-predicted_class, class_confidences = predict_star_class(model,features,new_star_data)
+print(f"\nPredicted Class: {predicted}")
+for cls, prob in probs.items():
+    print(f"  {cls}: {prob:.4%}")
 
-# Prints
-print(f"Predicted Class: {predicted_class}")
-print("Probability:")
-for cls, prob in class_confidences.items():
-    print(f"  {cls}: {prob:.4%}")
-
-
-plt.figure(figsize=(8,6))
-
-for cls in model.classes_:
-    idx = y_test == cls
-    plt.scatter(X_test.loc[idx, "u"], X_test.loc[idx, "redshift"], label=cls, alpha=0.45)
-
-plt.xlabel("u")
-plt.ylabel("redshift")
-plt.title("Scatter plot of stars by class")
-plt.legend()
-plt.show()
+graph.graph(y_pred, y_test, model, X_test)

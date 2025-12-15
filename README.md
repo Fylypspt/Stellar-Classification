@@ -1,0 +1,1 @@
+This project implements a machine learning system to classify astronomical objects (STAR, GALAXY, QSO) based on photometric measurements and redshift.
