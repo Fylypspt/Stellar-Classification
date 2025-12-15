@@ -16,15 +16,21 @@ def graph(y_pred, y_test, model, X_test):
             label=f"{cls} (correct)"
         )
 
-    plt.scatter(
-        X_test.loc[mis_mask, "u"],
-        X_test.loc[mis_mask, "redshift"],
-        c="red",
-        marker="x",
-        s=70,
-        linewidths=1.5,
-        label="Misclassified"
-    )
+    # Misclassified
+    markers = {"STAR": "x", "GALAXY": "x", "QSO": "x"}
+    colors = {"STAR": "yellow", "GALAXY": "purple", "QSO": "blue"}
+
+    for cls in model.classes_:
+        idx = (y_test == cls) & mis_mask
+        plt.scatter(
+            X_test.loc[idx, "u"],
+            X_test.loc[idx, "redshift"],
+            c=colors[cls],
+            marker=markers[cls],
+            s=70,
+            linewidths=1.5,
+            label=f"{cls} (misclassified)"
+        )
 
     plt.xlabel("u magnitude")
     plt.ylabel("Redshift")
