@@ -16,7 +16,7 @@ try:
 except FileNotFoundError:
     model, X_test, y_test = funcs.load_or_train_model(False)
 
-#Scores
+#Metrics
 y_pred = model.predict(X_test)
 
 print(f"Accuracy: {model.score(X_test, y_test):.4%}")
