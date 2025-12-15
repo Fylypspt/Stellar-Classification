@@ -1,4 +1,4 @@
-This project classifies stars, galaxies, and quasars using only basic SDSS data (u, g, r, i, z and redshift).
+This project classifies stars, galaxies, and quasars using only basic SDSS Photometric data (u, g, r, i, z and redshift).
 
 A Random Forest is used because it handles noisy tabular data well and is easy to reason about. The model is trained once and reused so results stay consistent and iteration is fast.
 
