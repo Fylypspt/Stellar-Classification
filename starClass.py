@@ -2,10 +2,11 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 import joblib
+import matplotlib.pyplot as plt
 
 df = pd.read_csv("stars.csv")
 
-features = ["u", "g", "r", "i", "z"]
+features = ["u", "g", "r", "i", "z", "redshift"]
 X = df[features] #Input
 y = df["class"] #Predict
 
@@ -25,7 +26,7 @@ except FileNotFoundError:
     joblib.dump(X_test, "X_test.pkl")
     joblib.dump(y_test, "y_test.pkl")
 
-print("Accuracy:", model.score(X_test, y_test))
+print(f"Accuracy: {model.score(X_test, y_test):.4%}")
 
 def predict_star_class(model, features: list, new_object_data: list) -> tuple:
     new_object = pd.DataFrame([new_object_data], columns=features)
@@ -37,7 +38,7 @@ def predict_star_class(model, features: list, new_object_data: list) -> tuple:
 
     return prediction, confidence_dict
 
-new_star_data = [19.2, 18.7, 18.3, 18.1, 18.0]
+new_star_data = [19.2, 18.7, 18.3, 18.1, 18.0, 0.0001]
 
 predicted_class, class_confidences = predict_star_class(model,features,new_star_data)
 
@@ -45,4 +46,17 @@ predicted_class, class_confidences = predict_star_class(model,features,new_star_
 print(f"Predicted Class: {predicted_class}")
 print("Probability:")
 for cls, prob in class_confidences.items():
-    print(f"  {cls}: {prob:.4f}")
+    print(f"  {cls}: {prob:.4%}")
+
+
+plt.figure(figsize=(8,6))
+
+for cls in model.classes_:
+    idx = y_test == cls
+    plt.scatter(X_test.loc[idx, "u"], X_test.loc[idx, "redshift"], label=cls, alpha=0.45)
+
+plt.xlabel("u")
+plt.ylabel("redshift")
+plt.title("Scatter plot of stars by class")
+plt.legend()
+plt.show()
