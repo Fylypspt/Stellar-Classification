@@ -4,4 +4,6 @@ A Random Forest is used because it handles noisy tabular data well and is easy t
 
 The project focuses on robustness. It deliberately simulates data drift to test how performance degrades when observations are slightly off, and it allows the model to output “UNCERTAIN” instead of forcing low-confidence predictions.
 
+Used Grid Search to tune hyperparameters like max depth and min samples per leaf, improving model robustness against overfitting and noise.
+
 Evaluation looks at what actually goes wrong, not just accuracy, with special attention to confusion between galaxies and quasars.

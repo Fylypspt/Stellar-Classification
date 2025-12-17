@@ -2,7 +2,7 @@ from src.config import *
 import joblib
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 
 def load_or_train_model(load_existing):
@@ -11,6 +11,7 @@ def load_or_train_model(load_existing):
         X_test = joblib.load(XTEST_PATH)
         y_test = joblib.load(YTEST_PATH)
     else:
+        
         X_train, X_test, y_train, y_test = train_test_split(
             X,
             y,
@@ -19,8 +20,29 @@ def load_or_train_model(load_existing):
             stratify=y
         )
 
-        model = RandomForestClassifier(random_state=SEED)
+        model = RandomForestClassifier(
+            random_state=SEED,
+            max_depth=MAX_DEPTH,
+            min_samples_leaf=MIN_SAMPLES_LEAF,
+            max_features=MAX_FEATURES
+        )
         model.fit(X_train, y_train)
+
+        # param_grid = {
+        #     'max_depth': [5, 10, 20, None],
+        #     'min_samples_leaf': [1, 2, 5, 10],
+        #     'max_features': ['sqrt', 'log2']
+        # }
+        # grid_search = GridSearchCV(
+        #     estimator=RandomForestClassifier(random_state=SEED),
+        #     param_grid=param_grid,
+        #     scoring='neg_log_loss', 
+        #     cv=3, 
+        #     n_jobs=-1
+        # )
+        # grid_search.fit(X_train, y_train)
+        # model = grid_search.best_estimator_
+        # print(f"The best settings to reduce surprise are: {grid_search.best_params_}")
 
         joblib.dump(model, MODEL_PATH)
         joblib.dump(X_test, XTEST_PATH)
